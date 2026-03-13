@@ -1,11 +1,14 @@
-@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@300..700&family=Sniglet:wght@400;800&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Fredoka:wght@300..700&family=Sniglet:wght@400;800&display=swap");
 @import "tailwindcss";
 
-
 @theme {
-  --color-primary: #9D81BA;
-  --color-action: #FAD05A;
-  --color-accent: #A5E6CE;
+  --color-primary: #a78bfa;
+  --color-secondary: #5b21b6;
+  --color-greenlight: #16a34a;
+  --color-greentext: #86efac;
+  --color-greendark: #052e16;
+  --color-action: #fad05a;
+  --color-accent: #a5e6ce;
   --font-sniglet: "Sniglet", sans-serif;
   --font-fredoka: "Fredoka", sans-serif;
 }
