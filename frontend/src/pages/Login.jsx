@@ -1,13 +1,33 @@
 import { IoMdArrowRoundBack } from "react-icons/io";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 const Login = () => {
+  const navigate = useNavigate();
   const [login, setLogin] = useState(false);
 
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [pin, setPin] = useState("");
+  const [error, setError] = useState("");
+  const CHILD_PIN = "1234";
+  const PARENT_PIN = "5678";
+
   const handleLogin = () => {
-    setLogin((prevLogin) => !prevLogin);
+    setLogin((prev) => !prev);
   };
+
+  const handleSubmit = (e) => {
+    if (selectedUser === "child" && pin === CHILD_PIN) {
+      navigate("/child-dashboard");
+    } else if (selectedUser === "parent" && pin === PARENT_PIN) {
+      navigate("/parent-dashboard");
+    } else {
+      setError("Wrong PIN, try again");
+      setPin("");
+    }
+  };
+
   return (
     <>
       <div className="min-h-screen flex items-center justify-center bg-neutral-800 font-mono">
@@ -28,8 +48,11 @@ const Login = () => {
                 className="flex flex-col gap-4 m-2"
               >
                 <button
-                  className="flex gap-4 border-2 border-white rounded-lg p-3"
-                  onClick={handleLogin}
+                  className="flex gap-4 border-2 border-white rounded-lg p-3 cursor-pointer"
+                  onClick={() => {
+                    setSelectedUser("child");
+                    setLogin(true);
+                  }}
                 >
                   <div className="bg-secondary rounded-full w-12 h-12 flex items-center justify-center font-bold text-2xl ">
                     I
@@ -42,8 +65,11 @@ const Login = () => {
                   </div>
                 </button>
                 <button
-                  className="flex gap-4 border-2 border-white rounded-lg p-3"
-                  onClick={handleLogin}
+                  className="flex gap-4 border-2 border-white rounded-lg p-3 cursor-pointer"
+                  onClick={() => {
+                    setSelectedUser("parent");
+                    setLogin(true);
+                  }}
                 >
                   <div className="bg-secondary rounded-full w-12 h-12 flex items-center justify-center font-bold text-2xl ">
                     S
@@ -67,18 +93,22 @@ const Login = () => {
                 className={`flex flex-col items-center justify-center ${!login && "hidden"}`}
               >
                 <button
-                  className="flex justify-start w-full gap-2 mb-6"
+                  className="flex justify-start w-full gap-2 mb-6 cursor-pointer"
                   onClick={handleLogin}
                 >
                   <IoMdArrowRoundBack className="text-2xl" />
                   <h1 className="text-xl font-medium">Back</h1>
                 </button>
-                <h2 className="text-4xl font-bold mb-5 text-center ">Login</h2>
                 <input
                   type="password"
                   inputMode="numeric"
                   maxLength={4}
                   placeholder="Enter PIN"
+                  value={pin}
+                  onChange={(e) => {
+                    setPin(e.target.value);
+                    setError("");
+                  }}
                   onKeyDown={(e) => {
                     if (
                       !/[0-9]/.test(e.key) &&
@@ -86,9 +116,17 @@ const Login = () => {
                     ) {
                       e.preventDefault();
                     }
+                    if (e.key === "Enter") handleSubmit();
                   }}
-                  className="w-full border border-white rounded-lg px-4 py-3 text-white placeholder-white/60 focus:outline-none focus:border-primary text-center text-xl tracking-[0.5em]"
+                  className="w-full bg-neutral-200 rounded-lg px-4 py-3 text-black placeholder-black/70 focus:outline-none focus:border-primary text-center text-xl tracking-[0.5em]"
                 />
+                {error && <p className="text-red-400 text-xl mt-2">{error}</p>}
+                <button
+                  onClick={handleSubmit}
+                  className="w-full bg-secondary text-2xl text-white py-3 rounded-lg mt-4 font-medium cursor-pointer"
+                >
+                  Login
+                </button>
               </motion.div>
             )}
           </AnimatePresence>
