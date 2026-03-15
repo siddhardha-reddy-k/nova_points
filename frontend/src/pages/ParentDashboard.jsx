@@ -1,31 +1,53 @@
 import { motion } from "framer-motion";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import api from "../api/axios";
 
 const ParentDashboard = () => {
-  const [redeemedPoints, setRedeemedPoints] = useState(0);
+  const [rewards, setRewards] = useState([]);
+  const [transactions, setTransactions] = useState([]);
 
-  const rewards = [
-    {
-      id: 1,
-      name: "Reward 1",
-      points: 10,
-    },
-    {
-      id: 2,
-      name: "Reward 2",
-      points: 20,
-    },
-    {
-      id: 3,
-      name: "Reward 3",
-      points: 30,
-    },
-  ];
-  const earnedPoints = 100;
+  useEffect(() => {
+    const fetchRewards = async () => {
+      try {
+        const { data } = await api.get("/rewards");
+        setRewards(data);
+      } catch (error) {
+        console.error("Failed to fetch rewards", error);
+      }
+    };
+    fetchRewards();
+  }, []);
+
+  useEffect(() => {
+    const fetchTransactions = async () => {
+      try {
+        const { data } = await api.get("/transactions");
+        setTransactions(data);
+      } catch (error) {
+        console.error("Failed to fetch transactions", error);
+      }
+    };
+    fetchTransactions();
+  }, []);
+
+  const earnedPoints = transactions
+    .filter((t) => t.type === "earned")
+    .reduce((total, t) => total + t.points, 0);
+
+  const redeemedPoints = transactions
+    .filter((t) => t.type === "redeemed")
+    .reduce((total, t) => total + t.points, 0);
+
   const leftPoints = earnedPoints - redeemedPoints;
 
-  const handleRedeem = (cost) => {
-    setRedeemedPoints(redeemedPoints + cost);
+  const handleRedeem = async (cost) => {
+    try {
+      await api.post("/transactions", { type: "redeemed", points: cost });
+      const { data } = await api.get("/transactions");
+      setTransactions(data);
+    } catch (error) {
+      console.error("Failed to redeem reward", error);
+    }
   };
 
   return (
@@ -73,27 +95,27 @@ const ParentDashboard = () => {
             {/* map Through Rewards */}
             {rewards.map((reward) => (
               <div
-                className={`flex items-center justify-between border border-neutral-400 px-4 py-3 rounded-lg ${leftPoints < reward.points ? "opacity-40 cursor-not-allowed" : ""}`}
+                className={`flex items-center justify-between border border-neutral-400 px-4 py-3 rounded-lg ${leftPoints < reward.cost ? "opacity-40 cursor-not-allowed" : ""}`}
                 key={reward.id}
               >
                 <div className="flex flex-col items-start">
-                  <p className={`text-xl font-light`}>{reward.name}</p>
+                  <p className={`text-xl font-light`}>{reward.label}</p>
                   <p className={`text-sm font-light`}>
-                    {reward.points} Points Required
+                    {reward.cost} Points Required
                   </p>
                 </div>
                 <div className="flex items-center gap-4">
                   <div className={`px-4 py-2 rounded-lg bg-secondary`}>
                     <p className={`text-sm font-medium text-white`}>
-                      {reward.points} pts
+                      {reward.cost} pts
                     </p>
                   </div>
                   <motion.button
                     className={`bg-transparent border-[0.5px] text-sm border-neutral-400 text-white px-4 py-2 rounded-lg cursor-pointer select-none`}
                     whileTap={{ scale: 0.97, backgroundColor: "#363636" }}
                     transition={{ duration: 0.1 }}
-                    onClick={() => handleRedeem(reward.points)}
-                    disabled={leftPoints < reward.points}
+                    onClick={() => handleRedeem(reward.cost)}
+                    disabled={leftPoints < reward.cost}
                   >
                     Redeem
                   </motion.button>

@@ -1,30 +1,74 @@
 import { FaCircle } from "react-icons/fa";
 import { FaCheckCircle } from "react-icons/fa";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
+import api from "../api/axios";
 
 const ChildDashboard = () => {
-  const [tasks, setTasks] = useState([
-    { id: 1, label: "Wake up on time", pts: 5, done: false },
-    { id: 2, label: "Make bed", pts: 5, done: false },
-    { id: 3, label: "Brush teeth", pts: 3, done: false },
-    { id: 4, label: "Complete homework", pts: 10, done: false },
-    { id: 5, label: "Go to bed on time", pts: 7, done: false },
-  ]);
+  const [tasks, setTasks] = useState([]);
+  const [transactions, setTransactions] = useState([]);
 
-  const earnedPoints = tasks
-    .filter((task) => task.done)
-    .reduce((total, task) => total + task.pts, 0);
+  // fetch tasks from the backend
+  useEffect(() => {
+    const fetchTasks = async () => {
+      try {
+        const { data } = await api.get("/tasks");
+        setTasks(data);
+      } catch (error) {
+        console.error("Failed to fetch tasks", error);
+      }
+    };
+    fetchTasks();
+  }, []);
 
-  const redeemedPoints = 0;
+  useEffect(() => {
+    const fetchTransactions = async () => {
+      try {
+        const { data } = await api.get("/transactions");
+        setTransactions(data);
+      } catch (error) {
+        console.error("Failed to fetch transactions", error);
+      }
+    };
+    fetchTransactions();
+  }, []);
+
+  const earnedPoints = transactions
+    .filter((t) => t.type === "earned")
+    .reduce((total, t) => total + t.points, 0);
+
+  const redeemedPoints = transactions
+    .filter((t) => t.type === "redeemed")
+    .reduce((total, t) => total + t.points, 0);
+
   const leftPoints = earnedPoints - redeemedPoints;
 
-  const handleComplete = (id) => {
-    setTasks((prevTasks) =>
-      prevTasks.map((task) =>
-        task.id === id ? { ...task, done: !task.done } : task,
-      ),
-    );
+  // upadate task status
+  const handleComplete = async (id, currentStatus) => {
+    try {
+      await api.put(`/tasks/${id}`, { is_done: !currentStatus });
+
+      if (!currentStatus) {
+        // marking done → create transaction with task_id
+        const task = tasks.find((t) => t.id === id);
+        await api.post("/transactions", {
+          type: "earned",
+          points: task.points,
+          task_id: id,
+        });
+      } else {
+        // unmarking → find and delete the transaction for this task
+        await api.delete(`/transactions/task/${id}`);
+      }
+
+      setTasks(
+        tasks.map((task) =>
+          task.id === id ? { ...task, is_done: !task.is_done } : task,
+        ),
+      );
+    } catch (error) {
+      console.error("Failed to complete task", error);
+    }
   };
 
   return (
@@ -76,30 +120,30 @@ const ChildDashboard = () => {
             {tasks.map((task) => (
               <motion.div
                 className="flex items-center justify-between border border-neutral-400 px-4 py-3 rounded-lg cursor-pointer select-none"
-                onClick={() => handleComplete(task.id)}
+                onClick={() => handleComplete(task.id, task.is_done)}
                 whileTap={{ scale: 0.97, backgroundColor: "#363636" }}
                 transition={{ duration: 0.1 }}
                 key={task.id}
               >
                 <div className="flex items-center gap-3">
                   <div>
-                    {!task.done ? (
+                    {!task.is_done ? (
                       <FaCircle className="text-transparent text-2xl border-2 border-white rounded-full" />
                     ) : (
                       <FaCheckCircle className="text-greenlight text-2xl border-2 border-greenlight rounded-full" />
                     )}
                   </div>
                   <p
-                    className={`text-lg font-light ${task.done && "text-greentext line-through"}`}
+                    className={`text-lg font-light ${task.is_done && "text-greentext line-through"}`}
                   >
                     {task.label}
                   </p>
                 </div>
                 <div
-                  className={`px-4 py-2 rounded-lg ${!task.done ? "bg-secondary" : "bg-greendark"} `}
+                  className={`px-4 py-2 rounded-lg ${!task.is_done ? "bg-secondary" : "bg-greendark"} `}
                 >
                   <p className={`text-sm font-medium text-white`}>
-                    {task.pts} pts
+                    {task.points} pts
                   </p>
                 </div>
               </motion.div>
