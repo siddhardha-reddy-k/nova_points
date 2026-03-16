@@ -7,6 +7,7 @@ const ParentDashboard = () => {
   const navigate = useNavigate();
   const [rewards, setRewards] = useState([]);
   const [transactions, setTransactions] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const handleLogout = () => {
     sessionStorage.removeItem("user");
@@ -20,6 +21,8 @@ const ParentDashboard = () => {
         setRewards(data);
       } catch (error) {
         console.error("Failed to fetch rewards", error);
+      } finally {
+        setLoading(false);
       }
     };
     fetchRewards();
@@ -56,6 +59,13 @@ const ParentDashboard = () => {
       console.error("Failed to redeem reward", error);
     }
   };
+
+  if (loading)
+    return (
+      <div className="min-h-screen bg-neutral-800 flex items-center justify-center">
+        <p className="text-white text-lg font-light">Loading...</p>
+      </div>
+    );
 
   return (
     <div className="min-h-screen bg-neutral-800 flex justify-center py-10">

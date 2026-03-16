@@ -27,4 +27,13 @@ router.put("/:id", async (req, res) => {
   }
 });
 
+router.post("/reset", async (req, res) => {
+  try {
+    await pool.query("UPDATE tasks SET is_done = FALSE");
+    res.json({ message: "tasks reset successfully" });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 export default router;

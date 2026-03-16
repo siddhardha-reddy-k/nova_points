@@ -9,6 +9,7 @@ const ChildDashboard = () => {
   const navigate = useNavigate();
   const [tasks, setTasks] = useState([]);
   const [transactions, setTransactions] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const handleLogout = () => {
     sessionStorage.removeItem("user");
@@ -22,7 +23,9 @@ const ChildDashboard = () => {
         const { data } = await api.get("/tasks");
         setTasks(data);
       } catch (error) {
-        console.error("Failed to fetch tasks", error);
+        console.error(error);
+      } finally {
+        setLoading(false);
       }
     };
     fetchTasks();
@@ -78,6 +81,13 @@ const ChildDashboard = () => {
       console.error("Failed to complete task", error);
     }
   };
+
+  if (loading)
+    return (
+      <div className="min-h-screen bg-neutral-800 flex items-center justify-center">
+        <p className="text-white text-lg font-light">Loading...</p>
+      </div>
+    );
 
   return (
     <div className="min-h-screen bg-neutral-800 flex justify-center py-10">
