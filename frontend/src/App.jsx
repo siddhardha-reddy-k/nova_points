@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Login from "./pages/Login";
 import ChildDashboard from "./pages/ChildDashboard";
 import ParentDashboard from "./pages/ParentDashboard";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
   return (
@@ -9,8 +10,22 @@ function App() {
       <Routes>
         <Route path="/" element={<Login />} />
         <Route path="/login" element={<Login />} />
-        <Route path="/child-dashboard" element={<ChildDashboard />} />
-        <Route path="/parent-dashboard" element={<ParentDashboard />} />
+        <Route
+          path="/child-dashboard"
+          element={
+            <ProtectedRoute role="child">
+              <ChildDashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/parent-dashboard"
+          element={
+            <ProtectedRoute role="parent">
+              <ParentDashboard />
+            </ProtectedRoute>
+          }
+        />
       </Routes>
     </BrowserRouter>
   );

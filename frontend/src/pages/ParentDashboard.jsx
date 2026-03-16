@@ -1,10 +1,17 @@
 import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
 import api from "../api/axios";
+import { useNavigate } from "react-router-dom";
 
 const ParentDashboard = () => {
+  const navigate = useNavigate();
   const [rewards, setRewards] = useState([]);
   const [transactions, setTransactions] = useState([]);
+
+  const handleLogout = () => {
+    sessionStorage.removeItem("user");
+    navigate("/");
+  };
 
   useEffect(() => {
     const fetchRewards = async () => {
@@ -60,7 +67,10 @@ const ParentDashboard = () => {
             <p className="text-sm font-light">Redeem Ishitha's rewards</p>
           </div>
           <div>
-            <button className="bg-transparent border-[0.5px] border-neutral-400 text-white px-4 py-2 rounded-lg">
+            <button
+              onClick={handleLogout}
+              className="bg-transparent border-[0.5px] border-neutral-400 text-white px-4 py-2 rounded-lg cursor-pointer"
+            >
               Log out
             </button>
           </div>

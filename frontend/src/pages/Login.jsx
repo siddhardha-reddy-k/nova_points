@@ -17,10 +17,12 @@ const Login = () => {
     setLogin((prev) => !prev);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = () => {
     if (selectedUser === "child" && pin === CHILD_PIN) {
+      sessionStorage.setItem("user", "child");
       navigate("/child-dashboard");
     } else if (selectedUser === "parent" && pin === PARENT_PIN) {
+      sessionStorage.setItem("user", "parent");
       navigate("/parent-dashboard");
     } else {
       setError("Wrong PIN, try again");

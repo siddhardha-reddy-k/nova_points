@@ -3,10 +3,17 @@ import { FaCheckCircle } from "react-icons/fa";
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import api from "../api/axios";
+import { useNavigate } from "react-router-dom";
 
 const ChildDashboard = () => {
+  const navigate = useNavigate();
   const [tasks, setTasks] = useState([]);
   const [transactions, setTransactions] = useState([]);
+
+  const handleLogout = () => {
+    sessionStorage.removeItem("user");
+    navigate("/");
+  };
 
   // fetch tasks from the backend
   useEffect(() => {
@@ -49,7 +56,6 @@ const ChildDashboard = () => {
       await api.put(`/tasks/${id}`, { is_done: !currentStatus });
 
       if (!currentStatus) {
-        // marking done → create transaction with task_id
         const task = tasks.find((t) => t.id === id);
         await api.post("/transactions", {
           type: "earned",
@@ -57,7 +63,6 @@ const ChildDashboard = () => {
           task_id: id,
         });
       } else {
-        // unmarking → find and delete the transaction for this task
         await api.delete(`/transactions/task/${id}`);
       }
 
@@ -66,6 +71,9 @@ const ChildDashboard = () => {
           task.id === id ? { ...task, is_done: !task.is_done } : task,
         ),
       );
+
+      const { data } = await api.get("/transactions");
+      setTransactions(data);
     } catch (error) {
       console.error("Failed to complete task", error);
     }
@@ -83,7 +91,10 @@ const ChildDashboard = () => {
             </p>
           </div>
           <div>
-            <button className="bg-transparent border-[0.5px] border-neutral-400 text-white px-4 py-2 rounded-lg">
+            <button
+              onClick={handleLogout}
+              className="bg-transparent border-[0.5px] border-neutral-400 text-white px-4 py-2 rounded-lg cursor-pointer"
+            >
               Log out
             </button>
           </div>
@@ -101,7 +112,7 @@ const ChildDashboard = () => {
             <p className="text-2xl font-bold">{redeemedPoints}</p>
             <p className="text-sm font-light">Redeemed</p>
           </div>
-          {/* Total points */}
+          {/* Left points */}
           <div className="flex flex-1 flex-col gap-2 items-center bg-secondary p-2 rounded-lg">
             <p className="text-2xl font-bold">{leftPoints}</p>
             <p className="text-sm font-light">Total points Left</p>
