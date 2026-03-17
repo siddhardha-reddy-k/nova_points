@@ -1,18 +1,18 @@
-import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
 import api from "../api/axios";
-import { useNavigate } from "react-router-dom";
+import useTransactions from "../hooks/useTransactions";
+import useAuth from "../hooks/useAuth";
+import LoadingScreen from "../components/LoadingScreen";
+import StatsBar from "../components/StatsBar";
+import DashboardHeader from "../components/DashboardHeader";
+import RewardCard from "../components/RewardCard";
 
 const ParentDashboard = () => {
-  const navigate = useNavigate();
+  const { handleLogout } = useAuth();
   const [rewards, setRewards] = useState([]);
-  const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
-
-  const handleLogout = () => {
-    sessionStorage.removeItem("user");
-    navigate("/");
-  };
+  const { earnedPoints, redeemedPoints, leftPoints, fetchTransactions } =
+    useTransactions();
 
   useEffect(() => {
     const fetchRewards = async () => {
@@ -28,89 +28,33 @@ const ParentDashboard = () => {
     fetchRewards();
   }, []);
 
-  useEffect(() => {
-    const fetchTransactions = async () => {
-      try {
-        const { data } = await api.get("/transactions");
-        setTransactions(data);
-      } catch (error) {
-        console.error("Failed to fetch transactions", error);
-      }
-    };
-    fetchTransactions();
-  }, []);
-
-  const earnedPoints = transactions
-    .filter((t) => t.type === "earned")
-    .reduce((total, t) => total + t.points, 0);
-
-  const redeemedPoints = transactions
-    .filter((t) => t.type === "redeemed")
-    .reduce((total, t) => total + t.points, 0);
-
-  const leftPoints = earnedPoints - redeemedPoints;
-
   const handleRedeem = async (cost) => {
     try {
       await api.post("/transactions", { type: "redeemed", points: cost });
-      const { data } = await api.get("/transactions");
-      setTransactions(data);
+      await fetchTransactions();
     } catch (error) {
       console.error("Failed to redeem reward", error);
     }
   };
 
-  if (loading)
-    return (
-      <div className="min-h-screen bg-neutral-800 flex items-center justify-center">
-        <p className="text-white text-lg font-light">Loading...</p>
-      </div>
-    );
+  if (loading) return <LoadingScreen />;
 
   return (
     <div className="min-h-screen bg-neutral-800 flex justify-center py-10">
       <div className="w-full max-w-2xl px-4">
         {/* header */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <img
-              src="/nova-logo.png"
-              alt="Nova Points"
-              className="w-20 h-20 rounded-full"
-            />
-            <div className="flex flex-col gap-2 text-white">
-              <h1 className="text-4xl font-bold">Hey Siddhardha! ✦</h1>
-              <p className="text-sm font-light">Redeem Ishitha's rewards</p>
-            </div>
-          </div>
-          <div>
-            <button
-              onClick={handleLogout}
-              className="bg-transparent border-[0.5px] border-neutral-400 text-white px-4 py-2 rounded-lg cursor-pointer"
-            >
-              Log out
-            </button>
-          </div>
-        </div>
+        <DashboardHeader
+          name="Siddhardha"
+          subtitle="Redeem Ishitha's rewards"
+          onLogout={handleLogout}
+        />
 
         {/* Stats Section*/}
-        <div className="flex gap-4 items-center justify-between mt-10 text-white">
-          {/* Earned points */}
-          <div className="flex flex-1 flex-col gap-2 items-center bg-neutral-700 p-2 rounded-lg">
-            <p className="text-2xl font-bold">{earnedPoints}</p>
-            <p className="text-sm font-light">Earned</p>
-          </div>
-          {/* Redeemed points */}
-          <div className="flex flex-1 flex-col gap-2 items-center bg-neutral-700 p-2 rounded-lg">
-            <p className="text-2xl font-bold">{redeemedPoints}</p>
-            <p className="text-sm font-light">Redeemed</p>
-          </div>
-          {/* Total points */}
-          <div className="flex flex-1 flex-col gap-2 items-center bg-secondary p-2 rounded-lg">
-            <p className="text-2xl font-bold">{leftPoints}</p>
-            <p className="text-sm font-light">Total points Left</p>
-          </div>
-        </div>
+        <StatsBar
+          earned={earnedPoints}
+          redeemed={redeemedPoints}
+          left={leftPoints}
+        />
 
         {/* Today's Tasks Section */}
         <div className="flex flex-col gap-4 mt-10 text-white">
@@ -121,33 +65,12 @@ const ParentDashboard = () => {
           <div className="flex flex-col gap-2">
             {/* map Through Rewards */}
             {rewards.map((reward) => (
-              <div
-                className={`flex items-center justify-between border border-neutral-400 px-4 py-3 rounded-lg ${leftPoints < reward.cost ? "opacity-40 cursor-not-allowed" : ""}`}
+              <RewardCard
                 key={reward.id}
-              >
-                <div className="flex flex-col items-start">
-                  <p className={`text-xl font-light`}>{reward.label}</p>
-                  <p className={`text-sm font-light`}>
-                    {reward.cost} Points Required
-                  </p>
-                </div>
-                <div className="flex items-center gap-4">
-                  <div className={`px-4 py-2 rounded-lg bg-secondary`}>
-                    <p className={`text-sm font-medium text-white`}>
-                      {reward.cost} pts
-                    </p>
-                  </div>
-                  <motion.button
-                    className={`bg-transparent border-[0.5px] text-sm border-neutral-400 text-white px-4 py-2 rounded-lg cursor-pointer select-none`}
-                    whileTap={{ scale: 0.97, backgroundColor: "#363636" }}
-                    transition={{ duration: 0.1 }}
-                    onClick={() => handleRedeem(reward.cost)}
-                    disabled={leftPoints < reward.cost}
-                  >
-                    Redeem
-                  </motion.button>
-                </div>
-              </div>
+                reward={reward}
+                canAfford={leftPoints >= reward.cost}
+                onRedeem={handleRedeem}
+              />
             ))}
           </div>
         </div>
