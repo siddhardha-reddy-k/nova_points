@@ -35,8 +35,9 @@ const Login = () => {
       <div className="min-h-screen flex items-center justify-center bg-neutral-800 font-mono">
         <div className="bg-neutral-600 p-8 rounded-lg shadow-md w-120 text-white">
           {/* Header */}
-          <div className="mb-6 text-center">
-            <h1 className="text-4xl font-bold ">Nova Points - Login</h1>
+          <div className="mb-6 text-center flex flex-col items-center gap-3">
+            <img src="/nova-logo.png" alt="Nova Points Logo" className="w-16 h-16 rounded-full" />
+            <h1 className="text-4xl font-bold">Nova Points</h1>
           </div>
 
           {/* User Selection */}

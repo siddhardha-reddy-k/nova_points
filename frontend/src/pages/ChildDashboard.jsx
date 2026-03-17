@@ -94,11 +94,18 @@ const ChildDashboard = () => {
       <div className="w-full max-w-2xl px-4">
         {/* header */}
         <div className="flex items-center justify-between">
-          <div className="flex flex-col gap-2 text-white">
-            <h1 className="text-4xl font-bold">Hey Ishitha! ✦</h1>
-            <p className="text-sm font-light">
-              Complete your tasks to earn nova points
-            </p>
+          <div className="flex items-center gap-3">
+            <img
+              src="/nova-logo.png"
+              alt="Nova Points"
+              className="w-15 h-15 rounded-full"
+            />
+            <div className="flex flex-col gap-1 text-white">
+              <h1 className="text-4xl font-bold">Hey Ishitha! ✦</h1>
+              <p className="text-sm font-light">
+                Complete your tasks to earn nova points
+              </p>
+            </div>
           </div>
           <div>
             <button

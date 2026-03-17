@@ -72,9 +72,16 @@ const ParentDashboard = () => {
       <div className="w-full max-w-2xl px-4">
         {/* header */}
         <div className="flex items-center justify-between">
-          <div className="flex flex-col gap-2 text-white">
-            <h1 className="text-4xl font-bold">Hey Siddhardha! ✦</h1>
-            <p className="text-sm font-light">Redeem Ishitha's rewards</p>
+          <div className="flex items-center gap-2">
+            <img
+              src="/nova-logo.png"
+              alt="Nova Points"
+              className="w-20 h-20 rounded-full"
+            />
+            <div className="flex flex-col gap-2 text-white">
+              <h1 className="text-4xl font-bold">Hey Siddhardha! ✦</h1>
+              <p className="text-sm font-light">Redeem Ishitha's rewards</p>
+            </div>
           </div>
           <div>
             <button
