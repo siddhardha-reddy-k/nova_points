@@ -18,3 +18,9 @@ CREATE TABLE transactions (
   task_id    INT REFERENCES tasks(id),
   created_at TIMESTAMP DEFAULT NOW()
 );
+
+CREATE TABLE users (
+  id       SERIAL PRIMARY KEY,
+  role     VARCHAR(10) CHECK (role IN ('child', 'parent')),
+  pin_hash TEXT NOT NULL
+);

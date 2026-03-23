@@ -2,6 +2,7 @@ import { IoMdArrowRoundBack } from "react-icons/io";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import api from "../api/axios";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -17,14 +18,20 @@ const Login = () => {
     setLogin((prev) => !prev);
   };
 
-  const handleSubmit = () => {
-    if (selectedUser === "child" && pin === CHILD_PIN) {
-      sessionStorage.setItem("user", "child");
-      navigate("/child-dashboard");
-    } else if (selectedUser === "parent" && pin === PARENT_PIN) {
-      sessionStorage.setItem("user", "parent");
-      navigate("/parent-dashboard");
-    } else {
+  const handleSubmit = async () => {
+    try {
+      const { data } = await api.post("/auth/login", {
+        role: selectedUser,
+        pin,
+      });
+
+      sessionStorage.setItem("token", data.token);
+      sessionStorage.setItem("user", data.role);
+
+      navigate(
+        data.role === "child" ? "/child-dashboard" : "/parent-dashboard",
+      );
+    } catch {
       setError("Wrong PIN, try again");
       setPin("");
     }
@@ -36,7 +43,11 @@ const Login = () => {
         <div className="bg-neutral-600 p-8 rounded-lg shadow-md w-120 text-white">
           {/* Header */}
           <div className="mb-6 text-center flex flex-col items-center gap-3">
-            <img src="/nova-logo.png" alt="Nova Points Logo" className="w-16 h-16 rounded-full" />
+            <img
+              src="/nova-logo.png"
+              alt="Nova Points Logo"
+              className="w-16 h-16 rounded-full"
+            />
             <h1 className="text-4xl font-bold">Nova Points</h1>
           </div>
 
@@ -105,7 +116,7 @@ const Login = () => {
                 <input
                   type="password"
                   inputMode="numeric"
-                  maxLength={4}
+                  maxLength={6}
                   placeholder="Enter PIN"
                   value={pin}
                   onChange={(e) => {
@@ -113,12 +124,6 @@ const Login = () => {
                     setError("");
                   }}
                   onKeyDown={(e) => {
-                    if (
-                      !/[0-9]/.test(e.key) &&
-                      !["Backspace", "Delete", "Tab", "Enter"].includes(e.key)
-                    ) {
-                      e.preventDefault();
-                    }
                     if (e.key === "Enter") handleSubmit();
                   }}
                   className="w-full bg-neutral-200 rounded-lg px-4 py-3 text-black placeholder-black/70 focus:outline-none focus:border-primary text-center text-xl tracking-[0.5em]"

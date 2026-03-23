@@ -1,10 +1,12 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
+import jwt from "jsonwebtoken";
 
 import tasksRouter from "./routes/tasks.js";
 import rewardsRouter from "./routes/rewards.js";
 import transactionsRouter from "./routes/transactions.js";
+import authRouter from "./routes/auth.js";
 
 dotenv.config();
 
@@ -20,16 +22,28 @@ app.use(
 );
 app.use(express.json());
 
-app.use("/tasks", tasksRouter);
-app.use("/rewards", rewardsRouter);
-app.use("/transactions", transactionsRouter);
+app.use("/auth", authRouter);
+
+function requireAuth(req, res, next) {
+  const header = req.headers.authorization;
+  const token = header?.split(" ")[1];
+
+  if (!token) {
+    return res.status(401).json({ error: "No token" });
+  }
+
+  try {
+    req.user = jwt.verify(token, process.env.JWT_SECRET);
+    next();
+  } catch {
+    res.status(401).json({ error: "Invalid token" });
+  }
+}
+
+app.use("/tasks", requireAuth, tasksRouter);
+app.use("/rewards", requireAuth, rewardsRouter);
+app.use("/transactions", requireAuth, transactionsRouter);
 
 const PORT = process.env.PORT || 3000;
-
-app.get("/", (req, res) => {
-  res.send("Port is running");
-});
-
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-});
+app.get("/", (_, res) => res.send("Port is running"));
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
