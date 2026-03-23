@@ -2,11 +2,11 @@
 
 A family points management app where a child earns points by completing daily tasks, and a parent redeems those points for rewards.
 
-## Tech Stack
+## Tech Stack & Architecture
 
-**Frontend** — React + Vite, Tailwind CSS, Framer Motion  
-**Backend** — Node.js, Express.js  
-**Database** — PostgreSQL
+- **Frontend** — React + Vite, Tailwind CSS, Framer Motion
+- **Backend** — Node.js, Express.js (Dockerized for **Google Cloud Run**)
+- **Database** — PostgreSQL (**Google Cloud SQL** securely connected via Unix Sockets)
 
 ## Features
 
@@ -14,100 +14,69 @@ A family points management app where a child earns points by completing daily ta
 - 👨 **Parent view** — view points balance, redeem rewards
 - 🔐 PIN-based login (no passwords stored in the DB)
 - 🔄 Real-time points update after each task or redemption
+- ☁️ **Cloud Native** — Infrastructure successfully migrated and fully managed natively on Google Cloud.
 
-## Project Structure
+## Getting Started Locally
 
-```
-nova-points/
-├── backend/
-│   ├── routes/
-│   │   ├── tasks.js
-│   │   ├── rewards.js
-│   │   └── transactions.js
-│   ├── db.js
-│   └── index.js
-└── frontend/
-    └── src/
-        ├── api/
-        │   └── axios.js
-        ├── hooks/
-        │   ├── useAuth.js
-        │   ├── useTransactions.js
-        │   └── useTasks.js
-        ├── components/
-        │   ├── ProtectedRoute.jsx
-        │   ├── DashboardHeader.jsx
-        │   ├── StatsBar.jsx
-        │   ├── LoadingScreen.jsx
-        │   ├── TaskCard.jsx
-        │   └── RewardCard.jsx
-        └── pages/
-            ├── Login.jsx
-            ├── ChildDashboard.jsx
-            └── ParentDashboard.jsx
-```
+### 1. Database Setup
+Create your tables using the schema provided in `backend/db/schema.sql` natively in PostgreSQL (e.g. pasting into Cloud SQL Studio).
 
-## Getting Started
-
-### Prerequisites
-
-- Node.js
-- PostgreSQL
-
-### Backend Setup
-
+### 2. Backend Setup
+Navigate into the backend and install dependencies:
 ```bash
 cd backend
 npm install
 ```
 
-Create a `.env` file in `backend/`:
-
+Create a `.env` file in `backend/` (this file is ignored by git):
 ```env
+# If connecting locally, you can use a local DB or the old neon DB.
+# For Cloud Run, this is managed in the Cloud Run Web UI!
 DATABASE_URL=your_postgresql_connection_string
-PORT=5000
+PORT=3000
 ```
 
 Start the backend:
-
 ```bash
 npm run dev
 ```
 
-### Frontend Setup
-
+### 3. Frontend Setup
+Navigate into the frontend:
 ```bash
 cd frontend
 npm install
 ```
 
 Create a `.env` file in `frontend/`:
-
 ```env
-VITE_API_URL=http://localhost:5000
-VITE_CHILD_PIN=your_child_pin
-VITE_PARENT_PIN=your_parent_pin
+# Point this to your live Cloud Run URL, or localhost:3000 for local testing
+VITE_API_URL=https://nova-points-backend-YOUR-URL.run.app
+VITE_CHILD_PIN=2016
+VITE_PARENT_PIN=0707
 ```
 
 Start the frontend:
-
 ```bash
 npm run dev
 ```
 
-## Database Schema
+---
 
-The full schema is in [`backend/db/schema.sql`](./backend/db/schema.sql).
+## 🚀 Google Cloud Deployment Instructions
 
-To set up the database, run the schema file against your PostgreSQL instance:
+### Backend Delivery (Cloud Run)
+1. Push your `backend` changes to GitHub (it relies on the `Dockerfile`).
+2. Navigate to **Google Cloud Run** -> **Create Service**.
+3. Choose **Continuously deploy from a repository** -> select your GitHub repository -> point the source directory to `/backend/Dockerfile`.
+4. **CRITICAL**: Go to the **Connections** tab inside the setup and explicitly select your **Cloud SQL instance**. (This attaches the secure internal Google Server tunnel).
+5. Open **Variables & Secrets**, and inject your `DATABASE_URL` formatted for Unix sockets:
+   `postgres://USER:PASSWORD@/DB_NAME?host=/cloudsql/PROJECT:REGION:INSTANCE`
+6. Make sure the Service Account has `Cloud SQL Client` permissions and the `Cloud SQL Admin API` is enabled. Deploy!
 
-```bash
-psql -U your_user -d your_database -f backend/db/schema.sql
-```
-
-**Tables:**
-| Table | Description |
-|---|---|
-| `tasks` | Daily tasks assigned to the child, each with a point value |
-| `rewards` | Rewards the parent can redeem using earned points |
-| `transactions` | Log of all earned and redeemed point events |
+### Frontend Delivery (Hosting)
+Because your frontend protects its `.env` file from GitHub, pushing code to GitHub won't update your production frontend's backend link.
+- Navigate to your hosting provider (Vercel, Render, Hostinger, etc.).
+- Find your **Environment Variables** settings.
+- Add or update `VITE_API_URL` to point exactly to your new Google Cloud Run URL.
+- Redeploy your frontend site!
