@@ -2,7 +2,7 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import jwt from "jsonwebtoken";
-
+import rateLimit from "express-rate-limit";
 import tasksRouter from "./routes/tasks.js";
 import rewardsRouter from "./routes/rewards.js";
 import transactionsRouter from "./routes/transactions.js";
@@ -22,7 +22,13 @@ app.use(
 );
 app.use(express.json());
 
-app.use("/auth", authRouter);
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  message: { error: "Too many attempts, try again later" },
+});
+
+app.use("/auth", loginLimiter, authRouter);
 
 function requireAuth(req, res, next) {
   const header = req.headers.authorization;

@@ -11,8 +11,6 @@ const Login = () => {
   const [selectedUser, setSelectedUser] = useState(null);
   const [pin, setPin] = useState("");
   const [error, setError] = useState("");
-  const CHILD_PIN = import.meta.env.VITE_CHILD_PIN;
-  const PARENT_PIN = import.meta.env.VITE_PARENT_PIN;
 
   const handleLogin = () => {
     setLogin((prev) => !prev);
