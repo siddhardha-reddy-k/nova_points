@@ -34,6 +34,8 @@ jobs:
           server: ${{ secrets.FTP_SERVER }}
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
+          protocol: ftps
+          port: 21
           local-dir: ./frontend/dist/
           server-dir: /home/u897490919/domains/siddhardhareddy.com/public_html/nova-points/
           exclude: |
