@@ -1,11 +1,22 @@
 import { useState, useEffect } from "react";
 import api from "../api/axios";
+import { DEMO_TASKS } from "../demo/demoData";
 
-const useTasks = (fetchTransactions) => {
+const useTasks = (
+  fetchTransactions,
+  isDemo = false,
+  demoTransactionHelpers = null,
+) => {
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (isDemo) {
+      setTasks(DEMO_TASKS.map((t) => ({ ...t })));
+      setLoading(false);
+      return;
+    }
+
     const fetchTasks = async () => {
       try {
         const { data } = await api.get("/tasks");
@@ -17,9 +28,31 @@ const useTasks = (fetchTransactions) => {
       }
     };
     fetchTasks();
-  }, []);
+  }, [isDemo]);
 
   const handleComplete = async (id, currentStatus) => {
+    if (isDemo) {
+      if (!currentStatus) {
+        setTasks((prev) => {
+          const task = prev.find((t) => t.id === id);
+          if (task) {
+            demoTransactionHelpers?.addTransaction({
+              type: "earned",
+              points: task.points,
+              task_id: id,
+            });
+          }
+          return prev.map((t) => (t.id === id ? { ...t, is_done: true } : t));
+        });
+      } else {
+        demoTransactionHelpers?.removeTransaction(id);
+        setTasks((prev) =>
+          prev.map((t) => (t.id === id ? { ...t, is_done: false } : t)),
+        );
+      }
+      return;
+    }
+
     try {
       await api.put(`/tasks/${id}`, { is_done: !currentStatus });
 

@@ -91,11 +91,21 @@ const Login = () => {
                     <div className="text-sm font-light">Manage rewards</div>
                   </div>
                 </button>
+
+                {/* Try Demo */}
+                <div className="mt-2 border-t border-white/20 pt-4 flex flex-col items-center gap-2">
+                  <p className="text-sm text-white/50">Just visiting?</p>
+                  <button
+                    onClick={() => navigate("/demo")}
+                    className="w-full border border-amber-400 text-amber-400 rounded-lg py-2 text-sm font-semibold hover:bg-amber-400/10 transition-colors cursor-pointer"
+                  >
+                    Try Demo
+                  </button>
+                </div>
               </motion.div>
             )}
 
             {/* Login */}
-
             {login && (
               <motion.div
                 initial={{ opacity: 0 }}
