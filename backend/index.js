@@ -31,6 +31,13 @@ const loginLimiter = rateLimit({
 app.use("/auth", loginLimiter, authRouter);
 
 function requireAuth(req, res, next) {
+  if (
+    req.originalUrl.includes("/tasks/reset") &&
+    req.headers["x-cron-secret"] === process.env.CRON_SECRET
+  ) {
+    return next();
+  }
+
   const header = req.headers.authorization;
   const token = header?.split(" ")[1];
 
