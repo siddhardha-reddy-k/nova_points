@@ -37,6 +37,6 @@ jobs:
           username: ${{ secrets.SSH_USERNAME }}
           password: ${{ secrets.SSH_PASSWORD }}
           port: 65002
-          source: "frontend/dist/*"
+          source: "frontend/dist"
           target: /home/u897490919/domains/siddhardhareddy.com/public_html/nova-points/
           strip_components: 2

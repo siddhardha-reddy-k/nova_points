@@ -20,7 +20,7 @@ const Login = () => {
     try {
       const { data } = await api.post("/auth/login", {
         role: selectedUser,
-        pin,
+        pin: pin.trim(),
       });
 
       sessionStorage.setItem("token", data.token);
@@ -123,7 +123,7 @@ const Login = () => {
                 </button>
                 <input
                   type="password"
-                  inputMode="numeric"
+                  inputMode="text"
                   maxLength={6}
                   placeholder="Enter PIN"
                   value={pin}
